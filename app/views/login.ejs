@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+
+<!-- Se va a enviar al index.js el (name="") asique dependiendo de lo que se ponga en name hay que ponerlo igual en indexjs -->
+
+    <form action="/login" method="post">
+        <label for="user">Name:</label><br>
+        <input type="text" id="user" name="user"><br><br>
+        <label for="password">Password:</label><br>
+        <input type="text" id="password" name="password"><br><br>
+
+        <input type="submit" value="Enviar">
+    </form>
+
+
+<%- include('partials/footer') %>
