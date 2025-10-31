@@ -20,6 +20,30 @@ const client = new Client({
   password: process.env.DB_PASSWORD,
 });
 
+function initDb() {
+  pool.connect((err) => {
+    if (err) {
+      console.error('Error connecting to database', err);
+    } else {
+      console.log('Connected to database');
+    }
+  });
+
+  try {
+    pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) NOT NULL
+    );
+  `);
+    console.log('Users table create or already exists');
+  } catch (err) {
+    console.error('Error creating users table', err);
+  }
+}
+
 function isAdmin(req, res, next) {
   if (req.cookies && req.cookies.user && req.cookies.role === 'admin') return next();
   return res.redirect('login');
@@ -34,6 +58,14 @@ function isAuth(req, res, next) {
 }
 
 app.get('/home', isUser, (req, res) => {
+  res.render('home', {
+    title: 'Mi primer web',
+    name1: 'Test arriba',
+    name2: 'Test abajo',
+  });
+});
+
+app.get('/registro', isUser, (req, res) => {
   res.render('home', {
     title: 'Mi primer web',
     name1: 'Test arriba',
@@ -97,7 +129,7 @@ app.post('/login', async (req, res) => {
 
     // Redirigir según rol
     return res.redirect(userdb.role === 'admin' ? '/admin' : '/home');
-    
+
   } catch (err) {
     console.error('Login error:', err);
     return res.redirect('/');
@@ -107,7 +139,7 @@ app.post('/login', async (req, res) => {
 
 async function start() {
   try {
-    await client.connect(); 
+    await client.connect();
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -119,7 +151,7 @@ async function start() {
     `);
 
     const adminHash = await bcrypt.hash('adminpass', 10);
-    const userHash  = await bcrypt.hash('userpass', 10);
+    const userHash = await bcrypt.hash('userpass', 10);
 
     await client.query(
       `INSERT INTO users (username, password, role)
