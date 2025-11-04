@@ -67,7 +67,7 @@ app.get('/home', isUser, (req, res) => {
 
 app.get('/registro', isUser, (req, res) => {
   res.render('home', {
-    title: 'Mi primer web',
+    title: 'Resgistro',
     name1: 'Test arriba',
     name2: 'Test abajo',
   });
@@ -136,6 +136,30 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.post('/registro', (req, res) => {
+  const { username, password } = req.body;
+
+  // Verificar si el usuario ya existe
+  const seleccionar = db.prepare('SELECT * FROM usersdb WHERE username = ?');
+  const existente = seleccionar.get(username);
+
+  if (existente) {
+    console.log('El usuario ya existe');
+    return res.status(400).redirect('registro');
+  }
+
+  // Hashear contraseña
+  const hash = bcrypt.hashSync(password, 10);
+
+  // Insertar nuevo usuario con rol "user" por defecto
+  const insertar = db.prepare(
+    'INSERT INTO usersdb (username, password, role) VALUES (?, ?, ?)',
+  );
+  insertar.run(username, hash, 'user');
+
+  console.log('Usuario registrado correctamente');
+  res.redirect('login');
+});
 
 async function start() {
   try {
